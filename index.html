@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>잠정수락 알고리즘 매칭 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16324f; --teal:#1f9e8f; --teal-l:#d9f1ee; --blue:#2f6fde; --blue-l:#e3ecfc;
+  --red:#d6453d; --red-l:#fbe4e2; --amber:#e29a17; --amber-l:#fdf1d8;
+  --ink:#1d2430; --muted:#6a7383; --line:#dfe3ea; --bg:#f5f7fa; --card:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans KR',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.55}
+header{background:var(--navy);color:#fff;padding:18px 24px 0}
+header h1{margin:0;font-size:22px;font-weight:900;letter-spacing:-.5px}
+header h1 small{font-weight:500;font-size:13px;opacity:.75;margin-left:8px}
+header p{margin:4px 0 12px;font-size:13px;opacity:.8}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:transparent;border:0;color:#cfe0f0;font:inherit;font-weight:700;padding:10px 16px;border-radius:10px 10px 0 0;cursor:pointer}
+nav button.on{background:var(--bg);color:var(--navy)}
+main{max-width:1180px;margin:0 auto;padding:20px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:17px;margin:0 0 10px;color:var(--navy)}
+.card h3{font-size:15px;margin:12px 0 6px;color:var(--navy)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 320px;min-width:0}
+label.f{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0;font-size:14px}
+input[type=number],input[type=text],select{font:inherit;padding:5px 8px;border:1px solid #c9cfd9;border-radius:8px;background:#fff}
+input[type=number]{width:62px}
+.btn{font:inherit;font-weight:700;border:1px solid #c9cfd9;background:#fff;color:var(--ink);padding:7px 14px;border-radius:9px;cursor:pointer}
+.btn:hover{background:#f0f3f7}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.pri:hover{filter:brightness(.95)}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.seg{display:inline-flex;border:1px solid #c9cfd9;border-radius:9px;overflow:hidden}
+.seg button{font:inherit;border:0;background:#fff;padding:6px 12px;cursor:pointer;font-weight:500}
+.seg button.on{background:var(--navy);color:#fff;font-weight:700}
+table.t{border-collapse:collapse;font-size:14px;margin:4px 0}
+table.t th,table.t td{border:1px solid var(--line);padding:4px 8px;text-align:center}
+table.t th{background:var(--teal-l);font-weight:700}
+table.t th.rh{background:#eef1f5}
+table.t input{width:46px;text-align:center;padding:3px}
+table.t input.nm{width:60px}
+tr.bad td,tr.bad th{background:var(--red-l)!important}
+.note{font-size:13px;color:var(--muted)}
+.warn{color:var(--red);font-size:13px;font-weight:700}
+.ok{color:var(--teal);font-weight:700}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700}
+.pill.blue{background:var(--blue-l);color:var(--blue)}
+.pill.green{background:var(--teal-l);color:#127a6e}
+.pill.red{background:var(--red-l);color:var(--red)}
+.pill.amber{background:var(--amber-l);color:#9a6608}
+.board{width:100%;height:auto;display:block;background:#fbfcfd;border:1px solid var(--line);border-radius:12px}
+.controls{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.stepinfo{font-weight:700;color:var(--navy);margin-left:auto;font-size:14px}
+.narr{background:var(--blue-l);border-left:4px solid var(--blue);padding:10px 12px;border-radius:8px;margin:8px 0;min-height:48px}
+.narr b{color:var(--navy)}
+.prefrow{display:flex;align-items:center;gap:6px;margin:5px 0;flex-wrap:wrap}
+.prefrow .who{width:86px;font-weight:700;font-size:14px}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:28px;padding:0 6px;border-radius:8px;border:1.5px solid #cdd3dc;background:#fff;font-weight:700;font-size:13px;color:#8a93a3;position:relative}
+.chip.held{background:var(--teal-l);border-color:var(--teal);color:#127a6e}
+.chip.rej{background:var(--red-l);border-color:#efb3ae;color:var(--red);text-decoration:line-through}
+.chip.now{border-color:var(--blue);background:var(--blue-l);color:var(--blue);box-shadow:0 0 0 2px rgba(47,111,222,.25)}
+.chip.empty{border-style:dashed;color:#b7bec9}
+.chip sup{font-size:9px;position:absolute;top:-6px;right:-5px;background:#fff;border-radius:6px;padding:0 2px;color:var(--muted);font-weight:500}
+.log{max-height:240px;overflow:auto;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:#fff}
+.log div{padding:3px 0;border-bottom:1px dashed #edf0f4}
+.log div.cur{background:var(--amber-l);font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:26px;height:0;border-top:3px solid}
+.algo ol{margin:6px 0;padding-left:22px}.algo li{margin:3px 0}
+details summary{cursor:pointer;font-weight:700;color:var(--navy)}
+.cmp td.diff{background:var(--amber-l);font-weight:700}
+.stable-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto}
+.stable-list button{text-align:left;font:inherit;font-size:13px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 10px;cursor:pointer}
+.stable-list button:hover{background:#f3f6fa}
+.bp{background:var(--amber-l);border-radius:8px;padding:6px 10px;margin:5px 0;font-size:13.5px}
+.big .board text{font-size:17px}
+@media (max-width:700px){main{padding:12px}.prefrow .who{width:64px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>잠정수락 알고리즘 매칭 시뮬레이터<small>Gale–Shapley Deferred Acceptance</small></h1>
+  <p>개인과 동호회, 멘토와 멘티, 구직자와 기업처럼 서로 선호가 있는 두 집단을 <b>안정적으로</b> 짝짓는 과정을 단계별로 살펴봅니다.</p>
+  <nav id="nav">
+    <button data-tab="setup">① 데이터 설정</button>
+    <button data-tab="sim" class="on">② 알고리즘 시뮬레이션</button>
+    <button data-tab="manual">③ 직접 매칭 · 안정성 검사</button>
+    <button data-tab="score">④ 성향 점수 → 선호순위</button>
+  </nav>
+</header>
+
+<main>
+<!-- ============ SETUP ============ -->
+<section class="tab" id="tab-setup">
+  <div class="card">
+    <h2>예시 불러오기</h2>
+    <select id="preset" style="min-width:320px"></select>
+    <button class="btn pri" id="loadPreset">불러오기</button>
+    <p class="note" id="presetNote"></p>
+  </div>
+  <div class="card">
+    <h2>두 집단 정하기</h2>
+    <div class="row">
+      <div class="col">
+        <label class="f">왼쪽 집단 이름 <input type="text" id="lblL" style="width:90px"></label>
+        <label class="f">수 <input type="number" id="nL" min="1" max="8"></label>
+        <p class="note">왼쪽 집단의 각 주체는 1곳에만 연결됩니다.</p>
+      </div>
+      <div class="col">
+        <label class="f">오른쪽 집단 이름 <input type="text" id="lblR" style="width:90px"></label>
+        <label class="f">수 <input type="number" id="nR" min="1" max="8"></label>
+        <p class="note">오른쪽 집단은 주체별로 정원(받을 수 있는 인원)을 정할 수 있습니다.</p>
+      </div>
+    </div>
+    <button class="btn" id="applySize">크기 적용</button>
+    <button class="btn" id="randPref">선호순위 무작위로 채우기</button>
+  </div>
+  <div class="card">
+    <h2>이름 · 정원 · 선호순위</h2>
+    <p class="note">각 칸에는 <b>선호순위</b>(1 = 가장 선호)를 적습니다. 한 행 안에서 순위가 겹치거나 빠지면 빨간색으로 표시됩니다.</p>
+    <div class="row">
+      <div class="col"><h3 id="hPrefL"></h3><div id="prefLWrap"></div></div>
+      <div class="col"><h3 id="hPrefR"></h3><div id="prefRWrap"></div></div>
+    </div>
+    <div id="validMsg"></div>
+  </div>
+</section>
+
+<!-- ============ SIM ============ -->
+<section class="tab on" id="tab-sim">
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <div><b>누가 먼저 제안(지원)하나요?</b>&nbsp;
+        <span class="seg" id="propSeg"><button data-p="L"></button><button data-p="R"></button></span>
+      </div>
+      <label class="f" style="margin-left:auto">속도
+        <input type="range" id="speed" min="300" max="2500" step="100" value="1200" style="width:110px">
+      </label>
+      <label class="f"><input type="checkbox" id="bigText"> 큰 글씨</label>
+    </div>
+    <div class="controls">
+      <button class="btn" id="bFirst" title="처음으로">⏮ 처음</button>
+      <button class="btn" id="bPrev" title="이전 (←)">◀ 이전</button>
+      <button class="btn blue" id="bNext" title="다음 (→)">다음 ▶</button>
+      <button class="btn" id="bPlay">▶ 자동 재생</button>
+      <button class="btn" id="bLast" title="끝으로">끝 ⏭</button>
+      <span class="stepinfo" id="stepInfo"></span>
+    </div>
+    <div class="narr" id="narr"></div>
+    <div class="row">
+      <div class="col" style="flex:1.2 1 420px" id="boardWrap">
+        <svg class="board" id="simSvg"></svg>
+        <div class="legend">
+          <span><i style="border-color:var(--blue);border-top-style:dashed"></i>이번 라운드 제안</span>
+          <span><i style="border-color:var(--teal)"></i>잠정 수락(보류)</span>
+          <span><i style="border-color:var(--red);border-top-style:dashed"></i>거절</span>
+        </div>
+      </div>
+      <div class="col">
+        <h3 id="hProp"></h3><div id="propLists"></div>
+        <h3 id="hRecv"></h3><div id="recvLists"></div>
+        <p class="note">칩 오른쪽 위 숫자는 선호순위입니다.</p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col card" style="margin-bottom:16px">
+      <h2>진행 기록</h2>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="col card algo" style="margin-bottom:16px">
+      <h2>잠정수락 알고리즘의 절차</h2>
+      <ol id="algoSteps"></ol>
+      <details><summary>안정적인 매칭이란?</summary>
+        <p class="note" style="color:var(--ink)">매칭 결과에서 <b>서로 지금 짝보다 상대를 더 원하는 두 주체(블로킹 쌍)</b>가 하나도 없으면 안정적이라고 합니다. 예를 들어 멘토 M이 자신의 멘티보다 멘티 m을 더 선호하고, 멘티 m도 자신의 멘토보다 멘토 M을 더 선호한다면 두 사람은 지금의 짝을 버리고 서로 짝을 지으려 할 것이므로 불안정합니다. 게일과 섀플리는 이 절차가 항상 안정적인 매칭을 찾는다는 것을 증명했습니다.</p>
+      </details>
+    </div>
+  </div>
+  <div class="card" id="resultCard" style="display:none">
+    <h2>매칭 결과</h2>
+    <div class="row">
+      <div class="col"><div id="resultTable"></div><div id="resultStable"></div></div>
+      <div class="col">
+        <button class="btn" id="bCompare">반대쪽이 먼저 제안하면? 비교하기</button>
+        <div id="compareOut"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANUAL ============ -->
+<section class="tab" id="tab-manual">
+  <div class="card">
+    <h2>직접 짝을 지어 보고 안정적인지 확인하기</h2>
+    <p class="note">왼쪽 주체를 누른 뒤 오른쪽 주체를 누르면 연결됩니다. 이미 연결된 쌍을 다시 누르면 연결이 풀립니다. <b>주황 점선</b>은 블로킹 쌍(서로 지금 짝보다 상대를 더 원하는 쌍)입니다.</p>
+    <div class="controls">
+      <button class="btn" id="mClear">모두 지우기</button>
+      <button class="btn" id="mRandom">무작위 매칭</button>
+      <button class="btn" id="mLoadL"></button>
+      <button class="btn" id="mLoadR"></button>
+    </div>
+    <div class="row">
+      <div class="col" style="flex:1.2 1 420px"><svg class="board" id="manSvg"></svg></div>
+      <div class="col">
+        <div id="manStatus"></div>
+        <div id="manBP"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>가능한 안정적 매칭 모두 찾기</h2>
+    <p class="note">모든 경우를 하나씩 확인합니다(주체 수가 적을 때만 가능). 목록을 누르면 위 보드에 표시됩니다.</p>
+    <button class="btn pri" id="mFindAll">모두 찾기</button>
+    <div id="allStable" style="margin-top:8px"></div>
+  </div>
+</section>
+
+<!-- ============ SCORE ============ -->
+<section class="tab" id="tab-score">
+  <div class="card">
+    <h2>성향 요소 점수로 선호순위 만들기</h2>
+    <p class="note">각 주체를 성향 점수의 순서쌍(벡터)으로 보고, 두 점 사이의 <b>거리</b>(가까울수록 선호) 또는 <b>코사인 유사도</b>(1에 가까울수록 선호)로 선호순위를 정합니다. 주체 수와 이름은 ① 데이터 설정을 따릅니다.</p>
+    <div class="controls">
+      <select id="scorePreset"></select>
+      <button class="btn" id="scoreLoad">교재 점수 불러오기</button>
+      <label class="f" style="margin-left:12px">성향 요소 수 <input type="number" id="nF" min="1" max="8"></label>
+      <button class="btn" id="applyF">적용</button>
+    </div>
+    <div class="row">
+      <div class="col"><h3 id="hScL"></h3><div id="scLWrap"></div></div>
+      <div class="col"><h3 id="hScR"></h3><div id="scRWrap"></div></div>
+    </div>
+    <div class="controls">
+      <b>기준</b>
+      <span class="seg" id="metricSeg"><button data-m="dist" class="on">거리 (유클리드)</button><button data-m="cos">코사인 유사도</button></span>
+      <button class="btn pri" id="scoreCalc">계산하기</button>
+    </div>
+    <div id="scoreOut"></div>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+/* ---------------- 유틸 ---------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hasBatchim(word){
+  const ch = String(word).trim().slice(-1);
+  if(!ch) return false;
+  const code = ch.charCodeAt(0);
+  if(code >= 0xAC00 && code <= 0xD7A3) return (code - 0xAC00) % 28 !== 0;
+  const up = ch.toUpperCase();
+  if('LMNR'.includes(up)) return true;          // 엘, 엠, 엔, 알
+  if('013678'.includes(ch)) return true;        // 영, 일, 삼, 육, 칠, 팔
+  return false;
+}
+function josa(word, pair){ // pair: '은는','이가','을를','과와','으로로'
+  const b = hasBatchim(word);
+  const map = {'은는':['은','는'],'이가':['이','가'],'을를':['을','를'],'과와':['과','와'],'으로로':['으로','로']};
+  const [a, c] = map[pair];
+  if(pair === '으로로'){ const ch = String(word).slice(-1); if(ch==='L'||ch==='l'||(ch.charCodeAt(0)>=0xAC00 && (ch.charCodeAt(0)-0xAC00)%28===8)) return word+'로'; }
+  return word + (b ? a : c);
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const range = n => Array.from({length:n},(_,i)=>i);
+const COLORS_L = ['#f3b6b0','#bfe0a8','#a9d8f2','#d4c4ec','#f7d68f','#f2b6d6','#a8e3d6','#d9c3a6'];
+const COLORS_R = ['#aab8f0','#9fdcc0','#d9b8b0','#f5d77a','#c7b2ea','#f2b28a','#a6d5ef','#c9d69b'];
+
+/* ---------------- 상태 ---------------- */
+const S = {
+  lblL:'개인', lblR:'동호회',
+  namesL:[], namesR:[], capR:[],
+  rankL:[], // rankL[i][j] : 왼쪽 i가 오른쪽 j에 준 순위(1=최선)
+  rankR:[], // rankR[j][i]
+  proposer:'L',
+  feat:[], scL:[], scR:[]
+};
+
+/* ---------------- 프리셋 ---------------- */
+const PRESETS = [
+  { id:'tb3', name:'교재 산업수학문제 3 · 문제 15 (개인 4, 동호회 4, 정원 1)',
+    note:'교재 35쪽의 선호순위 표입니다. 개인이 먼저 지원하고 동호회가 선택권을 가집니다.',
+    lblL:'개인', lblR:'동호회', namesL:['A','B','C','D'], namesR:['P','Q','R','S'], capR:[1,1,1,1],
+    rankL:[[3,2,1,4],[2,1,4,3],[3,4,2,1],[3,2,1,4]],
+    rankR:[[3,2,1,4],[4,1,3,2],[3,4,2,1],[3,2,1,4]] },
+  { id:'c1', name:'경우 (6)-① 개인 4, 동호회 3 (각 1명 정원)',
+    note:'교재 37쪽 (6)의 첫째 경우를 위한 예시 데이터입니다. 한 명은 반드시 남습니다.',
+    lblL:'개인', lblR:'동호회', namesL:['A','B','C','D'], namesR:['P','Q','R'], capR:[1,1,1],
+    rankL:[[3,2,1],[2,1,3],[3,1,2],[1,2,3]],
+    rankR:[[3,2,1,4],[4,1,3,2],[3,4,2,1]] },
+  { id:'c2', name:'경우 (6)-② 개인 4, 동호회 3 (P는 2명, 나머지 1명)',
+    note:'정원이 2명인 동호회는 "2개의 자리"로 생각할 수 있습니다. 4명 모두 배정될 수 있습니다.',
+    lblL:'개인', lblR:'동호회', namesL:['A','B','C','D'], namesR:['P','Q','R'], capR:[2,1,1],
+    rankL:[[3,2,1],[2,1,3],[3,1,2],[1,2,3]],
+    rankR:[[3,2,1,4],[4,1,3,2],[3,4,2,1]] },
+  { id:'c3', name:'경우 (6)-③ 개인 4, 동호회 5 (각 1명 정원)',
+    note:'개인이 모두 배정되면 남는 동호회가 있어도 매칭이 완료된 것입니다.',
+    lblL:'개인', lblR:'동호회', namesL:['A','B','C','D'], namesR:['P','Q','R','S','T'], capR:[1,1,1,1,1],
+    rankL:[[3,2,1,4,5],[2,1,4,3,5],[3,4,2,1,5],[3,2,1,4,5]],
+    rankR:[[3,2,1,4],[4,1,3,2],[3,4,2,1],[3,2,1,4],[1,2,3,4]] },
+  { id:'mm', name:'멘토–멘티 (3명씩, 제안 순서에 따라 결과가 달라지는 예)',
+    note:'누가 먼저 제안하느냐에 따라 결과가 달라집니다. ② 탭에서 제안하는 쪽을 바꾸어 비교해 보세요.',
+    lblL:'멘티', lblR:'멘토', namesL:['a','b','c'], namesR:['M','N','O'], capR:[1,1,1],
+    rankL:[[1,2,3],[2,3,1],[3,1,2]],
+    rankR:[[2,3,1],[1,2,3],[3,1,2]] },
+  { id:'job', name:'C사 구직자–기업 (4명씩, 무작위 선호순위)',
+    note:'교재 39쪽 C사의 문제처럼 구직자와 기업을 연결합니다. 기업에게 먼저 선택권이 있도록 설정했습니다.',
+    lblL:'구직자', lblR:'기업', namesL:['A','B','C','D'], namesR:['P','Q','R','S'], capR:[1,1,1,1],
+    random:true, proposer:'R' },
+];
+const SCORE_PRESETS = [
+  { name:'산업수학문제 1 (4×4, 성향 요소 5개)', L:['A','B','C','D'], R:['P','Q','R','S'],
+    feat:['적극성','사교성','배려심','모험심','리더십'],
+    scL:[[11,10,5,7,9],[9,9,1,10,8],[4,8,13,8,3],[10,7,13,4,6]],
+    scR:[[5,13,7,8,5],[10,8,3,10,6],[13,7,6,11,2],[7,12,14,6,8]] },
+  { name:'문제 7 (4×4, 성향 요소 3개)', L:['A','B','C','D'], R:['P','Q','R','S'],
+    feat:['적극성','사교성','배려심'],
+    scL:[[3,8,7],[5,7,6],[5,3,10],[4,4,6]],
+    scR:[[3,7,5],[1,7,7],[4,5,10],[5,4,4]] },
+  { name:'문제 8 (2×2, 거리가 같은 특수한 경우)', L:['A','B'], R:['P','Q'],
+    feat:['적극성','사교성'], scL:[[2,3],[6,7]], scR:[[6,3],[2,7]] },
+  { name:'탐색문제 1 (2×2)', L:['A','B'], R:['P','Q'],
+    feat:['적극성','사교성'], scL:[[4,8],[6,2]], scR:[[3,10],[6,8]] },
+  { name:'탐색문제 2 (3×3)', L:['A','B','C'], R:['P','Q','R'],
+    feat:['적극성','사교성','배려심'], scL:[[4,8,1],[6,2,2],[7,3,6]], scR:[[3,10,7],[6,8,3],[9,4,3]] },
+];
+
+function randomRanks(rows, cols){ return range(rows).map(()=>{ const p = shuffle(range(cols)); const r = Array(cols); p.forEach((j,k)=>r[j]=k+1); return r; }); }
+
+function loadPreset(p){
+  S.lblL=p.lblL; S.lblR=p.lblR; S.namesL=[...p.namesL]; S.namesR=[...p.namesR]; S.capR=[...p.capR];
+  if(p.random){ S.rankL=randomRanks(p.namesL.length,p.namesR.length); S.rankR=randomRanks(p.namesR.length,p.namesL.length); }
+  else { S.rankL=p.rankL.map(r=>[...r]); S.rankR=p.rankR.map(r=>[...r]); }
+  S.proposer = p.proposer || 'L';
+  $('#presetNote').textContent = p.note || '';
+  resetScores();
+  refreshAll();
+}
+
+/* ---------------- 검증 ---------------- */
+function rowValid(row, n){ if(row.length!==n) return false; const seen=new Set(); for(const v of row){ if(!Number.isInteger(v)||v<1||v>n||seen.has(v)) return false; seen.add(v);} return true; }
+function validate(){
+  const nL=S.namesL.length, nR=S.namesR.length;
+  const badL = range(nL).filter(i=>!rowValid(S.rankL[i], nR));
+  const badR = range(nR).filter(j=>!rowValid(S.rankR[j], nL));
+  const badCap = range(nR).filter(j=>!(Number.isInteger(S.capR[j]) && S.capR[j]>=1 && S.capR[j]<=8));
+  const names = [...S.namesL, ...S.namesR];
+  const dupName = names.some((n,k)=>!n || names.indexOf(n)!==k);
+  return {ok: !badL.length && !badR.length && !badCap.length && !dupName, badL, badR, badCap, dupName};
+}
+
+/* ---------------- 잠정수락 알고리즘 ---------------- */
+// 제안 쪽(P)과 받는 쪽(Q)을 일반화. 왼쪽 주체 정원은 1.
+function sides(proposer){
+  const nL=S.namesL.length, nR=S.namesR.length;
+  const capL = Array(nL).fill(1);
+  if(proposer==='L') return {nP:nL,nQ:nR,capP:capL,capQ:S.capR,rankP:S.rankL,rankQ:S.rankR,
+    nameP:i=>S.namesL[i], nameQ:j=>S.namesR[j], lblP:S.lblL, lblQ:S.lblR, toLR:(p,q)=>[p,q]};
+  return {nP:nR,nQ:nL,capP:S.capR,capQ:capL,rankP:S.rankR,rankQ:S.rankL,
+    nameP:j=>S.namesR[j], nameQ:i=>S.namesL[i], lblP:S.lblR, lblQ:S.lblL, toLR:(p,q)=>[q,p]};
+}
+function runDA(proposer){
+  const X = sides(proposer);
+  const {nP,nQ,capP,capQ,rankP,rankQ,nameP,nameQ,lblP,lblQ} = X;
+  const order = range(nP).map(p=>range(nQ).sort((a,b)=>rankP[p][a]-rankP[p][b]));
+  const next = Array(nP).fill(0);
+  let held = range(nQ).map(()=>[]);
+  const count = p => held.reduce((s,h)=>s+(h.includes(p)?1:0),0);
+  const steps = [];
+  const snap = (extra) => Object.assign({held:held.map(h=>[...h]), next:[...next]}, extra);
+  steps.push(snap({type:'init', round:0, proposals:[], rejections:[],
+    msg:`시작: 아직 아무도 연결되지 않았습니다. <b>${esc(lblP)}</b> 쪽이 선호순위가 높은 곳부터 차례로 제안하고, <b>${esc(lblQ)}</b> 쪽은 받은 제안을 바로 확정하지 않고 <b>잠정 수락(보류)</b>합니다.`,
+    log:`시작 — ${lblP} 쪽이 제안, ${lblQ} 쪽이 잠정 수락`}));
+  let round = 0;
+  while(true){
+    const proposals = [];
+    for(let p=0;p<nP;p++){
+      let need = capP[p] - count(p);
+      while(need>0 && next[p]<nQ){ const q = order[p][next[p]++]; proposals.push({p,q}); need--; }
+    }
+    if(!proposals.length) break;
+    round++;
+    const pText = proposals.map(({p,q})=>`${esc(nameP(p))}→${esc(nameQ(q))}`).join(', ');
+    steps.push(snap({type:'propose', round, proposals, rejections:[],
+      msg:`<b>${round}라운드 · 제안</b>: 아직 짝이 정해지지 않은 ${esc(josa(lblP,'이가'))} 아직 제안하지 않은 곳 중 가장 선호하는 곳에 제안합니다.${round>1?' (거절당한 주체는 다음 순위로)':''} <br>${pText}`,
+      log:`${round}라운드 제안: ${proposals.map(({p,q})=>`${nameP(p)}→${nameQ(q)}`).join(', ')}`}));
+    const rejections = []; const decisions = [];
+    const newHeld = held.map(h=>[...h]);
+    for(let q=0;q<nQ;q++){
+      const incoming = proposals.filter(x=>x.q===q).map(x=>x.p);
+      if(!incoming.length) continue;
+      const cand = [...held[q], ...incoming].sort((a,b)=>rankQ[q][a]-rankQ[q][b]);
+      const keep = cand.slice(0, capQ[q]); const drop = cand.slice(capQ[q]);
+      newHeld[q] = keep;
+      drop.forEach(p=>rejections.push({p,q,wasHeld:held[q].includes(p)}));
+      let t = `${esc(nameQ(q))}(정원 ${capQ[q]}): 후보 ${cand.map(p=>`${esc(nameP(p))}[${rankQ[q][p]}순위]`).join(', ')} → <span class="pill green">보류 ${keep.map(p=>esc(nameP(p))).join(', ')}</span>`;
+      if(drop.length) t += ` <span class="pill red">거절 ${drop.map(p=>esc(nameP(p))+(held[q].includes(p)?'(기존 보류 해제)':'')).join(', ')}</span>`;
+      decisions.push(t);
+    }
+    held = newHeld;
+    steps.push(snap({type:'decide', round, proposals, rejections,
+      msg:`<b>${round}라운드 · 결정</b>: 각 ${esc(josa(lblQ,'은는'))} 지금 보류 중인 상대와 새로 받은 제안을 함께 비교해 선호순위가 높은 순서로 정원만큼만 남깁니다.<br>${decisions.join('<br>')}`,
+      log:`${round}라운드 결정: ${rejections.length ? '거절 '+rejections.map(r=>`${nameQ(r.q)}✕${nameP(r.p)}`).join(', ') : '거절 없음'}`}));
+  }
+  steps.push(snap({type:'done', round, proposals:[], rejections:[],
+    msg:`<b>종료</b>: 더 이상 제안할 ${esc(josa(lblP,'이가'))} 없습니다. 지금까지 보류된 연결을 <b>최종 확정</b>합니다. (총 ${round}라운드)`,
+    log:`종료 — 보류 중인 연결을 최종 확정 (${round}라운드)`}));
+  // 최종 매칭: matchL[i] = j or -1
+  const matchL = Array(S.namesL.length).fill(-1);
+  held.forEach((hs,q)=>hs.forEach(p=>{ const [i,j]=X.toLR(p,q); matchL[i]=j; }));
+  return {steps, X, order, matchL};
+}
+
+/* ---------------- 안정성 ---------------- */
+function blockingPairs(matchL){
+  const nL=S.namesL.length, nR=S.namesR.length, bps=[];
+  const members = range(nR).map(j=>range(nL).filter(i=>matchL[i]===j));
+  for(let i=0;i<nL;i++) for(let j=0;j<nR;j++){
+    if(matchL[i]===j) continue;
+    const iWants = matchL[i]===-1 || S.rankL[i][j] < S.rankL[i][matchL[i]];
+    if(!iWants) continue;
+    let jWants=false, worst=-1;
+    if(members[j].length < S.capR[j]) jWants=true;
+    else { worst = members[j].reduce((w,k)=>S.rankR[j][k]>S.rankR[j][w]?k:w, members[j][0]);
+           jWants = S.rankR[j][i] < S.rankR[j][worst]; }
+    if(jWants) bps.push({i,j,worst});
+  }
+  return bps;
+}
+function describeBP({i,j,worst}){
+  const L=S.namesL[i], R=S.namesR[j];
+  const mi = S._m[i];
+  const a = mi===-1 ? `${esc(josa(L,'은는'))} 아직 짝이 없고 ${esc(R)}(${S.rankL[i][j]}순위)에 가고 싶습니다.`
+                    : `${esc(josa(L,'은는'))} 지금 짝 ${esc(S.namesR[mi])}(${S.rankL[i][mi]}순위)보다 ${esc(josa(R,'을를'))}(${S.rankL[i][j]}순위) 더 원합니다.`;
+  const b = worst===-1 ? `${esc(R)}에는 빈자리가 있습니다.`
+                    : `${esc(R)}도 지금 회원 ${esc(S.namesL[worst])}(${S.rankR[j][worst]}순위)보다 ${esc(josa(L,'을를'))}(${S.rankR[j][i]}순위) 더 원합니다.`;
+  return `<div class="bp"><b>${esc(L)} – ${esc(R)}</b>: ${a} ${b}</div>`;
+}
+
+/* ---------------- 설정 탭 렌더 ---------------- */
+function renderSetup(){
+  $('#lblL').value=S.lblL; $('#lblR').value=S.lblR;
+  $('#nL').value=S.namesL.length; $('#nR').value=S.namesR.length;
+  $('#hPrefL').textContent = `${S.lblL}의 선호순위 (행: ${S.lblL}, 열: ${S.lblR})`;
+  $('#hPrefR').textContent = `${S.lblR}의 정원과 선호순위 (행: ${S.lblR}, 열: ${S.lblL})`;
+  const v = validate();
+  let h = `<table class="t"><tr><th>이름</th>${S.namesR.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>`;
+  S.namesL.forEach((n,i)=>{
+    h += `<tr class="${v.badL.includes(i)?'bad':''}"><th class="rh"><input class="nm" data-k="nameL" data-i="${i}" value="${esc(n)}"></th>` +
+      S.namesR.map((_,j)=>`<td><input type="number" min="1" data-k="rankL" data-i="${i}" data-j="${j}" value="${S.rankL[i][j]??''}"></td>`).join('') + `</tr>`;
+  });
+  $('#prefLWrap').innerHTML = h+'</table>';
+  h = `<table class="t"><tr><th>이름</th><th>정원</th>${S.namesL.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>`;
+  S.namesR.forEach((n,j)=>{
+    h += `<tr class="${v.badR.includes(j)||v.badCap.includes(j)?'bad':''}"><th class="rh"><input class="nm" data-k="nameR" data-i="${j}" value="${esc(n)}"></th>` +
+      `<td><input type="number" min="1" max="8" data-k="capR" data-i="${j}" value="${S.capR[j]}"></td>` +
+      S.namesL.map((_,i)=>`<td><input type="number" min="1" data-k="rankR" data-i="${j}" data-j="${i}" value="${S.rankR[j][i]??''}"></td>`).join('') + `</tr>`;
+  });
+  $('#prefRWrap').innerHTML = h+'</table>';
+  const msgs=[];
+  if(v.badL.length) msgs.push(`${S.lblL} ${v.badL.map(i=>S.namesL[i]).join(', ')}의 선호순위는 1~${S.namesR.length}이 한 번씩 들어가야 합니다.`);
+  if(v.badR.length) msgs.push(`${S.lblR} ${v.badR.map(j=>S.namesR[j]).join(', ')}의 선호순위는 1~${S.namesL.length}이 한 번씩 들어가야 합니다.`);
+  if(v.badCap.length) msgs.push(`정원은 1~8 사이의 자연수여야 합니다.`);
+  if(v.dupName) msgs.push(`이름이 비어 있거나 겹칩니다.`);
+  $('#validMsg').innerHTML = msgs.length ? msgs.map(m=>`<p class="warn">⚠ ${esc(m)}</p>`).join('') : `<p class="ok">✔ 입력이 올바릅니다. ② 탭에서 시뮬레이션을 시작하세요.</p>`;
+}
+document.addEventListener('change', e=>{
+  const t=e.target, k=t.dataset.k; if(!k) return;
+  const i=+t.dataset.i, j=+t.dataset.j;
+  if(k==='nameL') S.namesL[i]=t.value.trim();
+  else if(k==='nameR') S.namesR[i]=t.value.trim();
+  else if(k==='rankL') S.rankL[i][j]=parseInt(t.value);
+  else if(k==='rankR') S.rankR[i][j]=parseInt(t.value);
+  else if(k==='capR') S.capR[i]=parseInt(t.value);
+  else return;
+  refreshAll();
+});
+$('#lblL').addEventListener('change',e=>{S.lblL=e.target.value.trim()||'왼쪽';refreshAll();});
+$('#lblR').addEventListener('change',e=>{S.lblR=e.target.value.trim()||'오른쪽';refreshAll();});
+$('#applySize').onclick=()=>{
+  const nL=Math.max(1,Math.min(8,parseInt($('#nL').value)||1)), nR=Math.max(1,Math.min(8,parseInt($('#nR').value)||1));
+  const defL='ABCDEFGH', defR='PQRSTUVW';
+  S.namesL = range(nL).map(i=>S.namesL[i]||defL[i]);
+  S.namesR = range(nR).map(j=>S.namesR[j]||defR[j]);
+  S.capR = range(nR).map(j=>S.capR[j]||1);
+  S.rankL = randomRanks(nL,nR); S.rankR = randomRanks(nR,nL);
+  resetScores(); refreshAll();
+};
+$('#randPref').onclick=()=>{ S.rankL=randomRanks(S.namesL.length,S.namesR.length); S.rankR=randomRanks(S.namesR.length,S.namesL.length); refreshAll(); };
+$('#preset').innerHTML = PRESETS.map((p,k)=>`<option value="${k}">${esc(p.name)}</option>`).join('');
+$('#loadPreset').onclick=()=>loadPreset(PRESETS[+$('#preset').value]);
+
+/* ---------------- 보드(SVG) 공통 ---------------- */
+function boardGeom(){
+  const nL=S.namesL.length, nR=S.namesR.length, n=Math.max(nL,nR);
+  const gap=74, top=62, H=top+n*gap+10, W=600, xL=110, xR=490;
+  const yL=i=>top+gap/2+i*gap+(n-nL)*gap/2, yR=j=>top+gap/2+j*gap+(n-nR)*gap/2;
+  return {W,H,xL,xR,yL,yR,r:25};
+}
+function nodeSVG(x,y,r,label,color,sub,id,extraCls=''){
+  return `<g class="node ${extraCls}" data-id="${id}" style="cursor:pointer">
+    <circle cx="${x}" cy="${y}" r="${r}" fill="${color}" stroke="#41506a" stroke-width="1.5"/>
+    <text x="${x}" y="${y+6}" text-anchor="middle" font-size="18" font-weight="900" fill="#1d2430">${esc(label)}</text>
+    ${sub?`<text x="${x}" y="${y+r+15}" text-anchor="middle" font-size="12" fill="#6a7383">${sub}</text>`:''}
+  </g>`;
+}
+function edge(x1,y1,x2,y2,{color,dash,width=3,arrow=false,cross=false,r=25}){
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy), ux=dx/len, uy=dy/len;
+  const sx=x1+ux*r, sy=y1+uy*r, ex=x2-ux*(r+(arrow?4:0)), ey=y2-uy*(r+(arrow?4:0));
+  let s=`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${color}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:''} ${arrow?`marker-end="url(#ar-${color.replace('#','')})"`:''} stroke-linecap="round"/>`;
+  if(cross){ const mx=(sx+ex)/2, my=(sy+ey)/2; s+=`<g transform="translate(${mx},${my})"><circle r="10" fill="#fff" stroke="${color}" stroke-width="2"/><path d="M-5,-5L5,5M5,-5L-5,5" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/></g>`; }
+  return s;
+}
+const MARKERS = ['2f6fde','1f9e8f','d6453d','e29a17'].map(c=>`<marker id="ar-${c}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#${c}"/></marker>`).join('');
+
+/* ---------------- 시뮬레이션 탭 ---------------- */
+let SIM = null, cur = 0, timer = null;
+function buildSim(){
+  stopPlay();
+  const v = validate();
+  if(!v.ok){ SIM=null; return; }
+  SIM = runDA(S.proposer); cur = 0;
+}
+function renderSim(){
+  $$('#propSeg button').forEach(b=>{ b.textContent = (b.dataset.p==='L'?S.lblL:S.lblR)+' 먼저'; b.classList.toggle('on', b.dataset.p===S.proposer); });
+  if(!SIM){
+    $('#narr').innerHTML = `<span class="warn">① 데이터 설정에서 입력 오류를 먼저 고쳐 주세요.</span>`;
+    $('#simSvg').innerHTML=''; $('#propLists').innerHTML=''; $('#recvLists').innerHTML=''; $('#log').innerHTML=''; $('#resultCard').style.display='none';
+    return;
+  }
+  const {steps, X, order} = SIM; const st = steps[cur];
+  $('#stepInfo').textContent = `단계 ${cur+1} / ${steps.length}` + (st.round?` · ${st.round}라운드`:'');
+  $('#narr').innerHTML = st.msg;
+  $('#bPrev').disabled = $('#bFirst').disabled = cur===0;
+  $('#bNext').disabled = $('#bLast').disabled = cur===steps.length-1;
+  // 알고리즘 절차
+  $('#algoSteps').innerHTML = [
+    `각 ${esc(josa(X.lblP,'은는'))} 아직 제안하지 않은 ${esc(X.lblQ)} 중 가장 선호하는 곳에 제안합니다.`,
+    `각 ${esc(josa(X.lblQ,'은는'))} 받은 제안과 이미 보류 중인 상대를 비교해 선호순위가 높은 상대를 정원만큼 <b>잠정 수락(보류)</b>하고 나머지는 거절합니다.`,
+    `거절당한 ${esc(josa(X.lblP,'은는'))} 다음 순위의 ${esc(X.lblQ)}에 다시 제안합니다. 보류된 상대도 더 좋은 제안이 오면 거절될 수 있습니다.`,
+    `더 이상 새로운 제안이 없으면 보류 중인 연결을 최종 확정합니다.`
+  ].map(t=>`<li>${t}</li>`).join('');
+  // SVG
+  const G = boardGeom();
+  const capL = Array(S.namesL.length).fill(1);
+  const heldLR = []; st.held.forEach((hs,q)=>hs.forEach(p=>heldLR.push(X.toLR(p,q))));
+  const cntR = range(S.namesR.length).map(j=>heldLR.filter(([,jj])=>jj===j).length);
+  let svg = `<defs>${MARKERS}</defs>`;
+  svg += `<text x="${G.xL}" y="30" text-anchor="middle" font-weight="900" font-size="16" fill="#16324f">${esc(S.lblL)}${S.proposer==='L'?' (제안)':''}</text>`;
+  svg += `<text x="${G.xR}" y="30" text-anchor="middle" font-weight="900" font-size="16" fill="#16324f">${esc(S.lblR)}${S.proposer==='R'?' (제안)':''}</text>`;
+  const pt = (i,j)=>[G.xL,G.yL(i),G.xR,G.yR(j)];
+  const isProp = S.proposer==='L';
+  const rejKey = new Set(st.rejections.map(r=>X.toLR(r.p,r.q).join(',')));
+  // 보류선
+  heldLR.forEach(([i,j])=>{ const [x1,y1,x2,y2]=pt(i,j); svg+=edge(x1,y1,x2,y2,{color:'#1f9e8f',width:4}); });
+  // 제안/거절
+  if(st.type==='propose'){
+    st.proposals.forEach(({p,q})=>{ const [i,j]=X.toLR(p,q); let [x1,y1,x2,y2]=pt(i,j); if(!isProp){[x1,y1,x2,y2]=[x2,y2,x1,y1];} svg+=edge(x1,y1,x2,y2,{color:'#2f6fde',dash:'7 6',arrow:true}); });
+  }
+  if(st.type==='decide'){
+    st.rejections.forEach(({p,q})=>{ const [i,j]=X.toLR(p,q); let [x1,y1,x2,y2]=pt(i,j); if(!isProp){[x1,y1,x2,y2]=[x2,y2,x1,y1];} svg+=edge(x1,y1,x2,y2,{color:'#d6453d',dash:'6 6',width:2.5,cross:true}); });
+  }
+  S.namesL.forEach((n,i)=>{ const m = heldLR.some(([ii])=>ii===i); svg+=nodeSVG(G.xL,G.yL(i),G.r,n,COLORS_L[i%8], st.type==='done'&&!m?'미배정':'', 'L'+i); });
+  S.namesR.forEach((n,j)=>{ svg+=nodeSVG(G.xR,G.yR(j),G.r,n,COLORS_R[j%8], `${cntR[j]}/${S.capR[j]}명`, 'R'+j); });
+  const svgEl = $('#simSvg'); svgEl.setAttribute('viewBox',`0 0 ${G.W} ${G.H}`); svgEl.innerHTML = svg;
+  // 선호 목록
+  $('#hProp').textContent = `${X.lblP}의 선호 목록 (제안하는 쪽)`;
+  $('#hRecv').textContent = `${X.lblQ}의 보류 현황 (받는 쪽)`;
+  const nowSet = new Set(st.type==='propose'?st.proposals.map(x=>x.p+','+x.q):[]);
+  let h='';
+  for(let p=0;p<X.nP;p++){
+    h += `<div class="prefrow"><span class="who">${esc(X.nameP(p))}${X.capP[p]>1?` <span class="note">(${X.capP[p]})</span>`:''}</span>`;
+    order[p].forEach((q,k)=>{
+      let cls='';
+      if(k < st.next[p]){
+        if(nowSet.has(p+','+q)) cls='now';
+        else if(st.held[q].includes(p)) cls='held';
+        else cls='rej';
+        if(st.type==='decide' && st.rejections.some(r=>r.p===p&&r.q===q)) cls='rej';
+        else if(st.type==='decide' && st.held[q].includes(p)) cls='held';
+      }
+      h += `<span class="chip ${cls}">${esc(X.nameQ(q))}<sup>${k+1}</sup></span>`;
+    });
+    h += `</div>`;
+  }
+  $('#propLists').innerHTML = h;
+  h='';
+  for(let q=0;q<X.nQ;q++){
+    h += `<div class="prefrow"><span class="who">${esc(X.nameQ(q))} <span class="note">(${X.capQ[q]})</span></span>`;
+    const hs = st.held[q];
+    for(let s=0;s<X.capQ[q];s++){
+      const p = hs[s];
+      h += p===undefined ? `<span class="chip empty">빈자리</span>` : `<span class="chip held">${esc(X.nameP(p))}<sup>${X.rankQ[q][p]}</sup></span>`;
+    }
+    if(st.type==='decide'){ st.rejections.filter(r=>r.q===q).forEach(r=>{ h+=`<span class="chip rej">${esc(X.nameP(r.p))}<sup>${X.rankQ[q][r.p]}</sup></span>`; }); }
+    if(st.type==='propose'){ st.proposals.filter(x=>x.q===q).forEach(x=>{ h+=`<span class="chip now">${esc(X.nameP(x.p))}<sup>${X.rankQ[q][x.p]}</sup></span>`; }); }
+    h += `</div>`;
+  }
+  $('#recvLists').innerHTML = h;
+  // 로그
+  $('#log').innerHTML = steps.slice(0,cur+1).map((s,k)=>`<div class="${k===cur?'cur':''}">${esc(s.log)}</div>`).join('');
+  $('#log').scrollTop = $('#log').scrollHeight;
+  // 결과
+  if(st.type==='done') renderResult(); else $('#resultCard').style.display='none';
+}
+function satisfaction(matchL){
+  const rl = range(S.namesL.length).map(i=>matchL[i]===-1?null:S.rankL[i][matchL[i]]);
+  const rr = []; matchL.forEach((j,i)=>{ if(j!==-1) rr.push(S.rankR[j][i]); });
+  const avg = a=>{ const b=a.filter(x=>x!==null); return b.length? (b.reduce((s,x)=>s+x,0)/b.length).toFixed(2):'-'; };
+  return {rl, rr, avgL:avg(rl), avgR:avg(rr)};
+}
+function matchTable(matchL, other){
+  let h = `<table class="t cmp"><tr><th>${esc(S.lblL)}</th><th>${esc(S.lblR)}</th><th>${esc(S.lblL)}의 만족<br><span class="note">(선호순위)</span></th><th>${esc(S.lblR)}의 만족<br><span class="note">(선호순위)</span></th></tr>`;
+  S.namesL.forEach((n,i)=>{
+    const j = matchL[i]; const d = other && other[i]!==j ? 'diff':'';
+    h += `<tr><th class="rh">${esc(n)}</th><td class="${d}">${j===-1?'<span class="pill amber">미배정</span>':esc(S.namesR[j])}</td><td>${j===-1?'-':S.rankL[i][j]+'순위'}</td><td>${j===-1?'-':S.rankR[j][i]+'순위'}</td></tr>`;
+  });
+  const sa = satisfaction(matchL);
+  h += `<tr><th class="rh">평균</th><td></td><td><b>${sa.avgL}</b></td><td><b>${sa.avgR}</b></td></tr></table>`;
+  const emptyR = range(S.namesR.length).map(j=>S.capR[j]-matchL.filter(x=>x===j).length).map((e,j)=>e>0?`${S.namesR[j]} ${e}자리`:null).filter(Boolean);
+  if(emptyR.length) h += `<p class="note">남은 자리: ${esc(emptyR.join(', '))}</p>`;
+  return h;
+}
+function stabilityHTML(matchL){
+  S._m = matchL;
+  const bps = blockingPairs(matchL);
+  return bps.length ? `<p class="warn">✖ 블로킹 쌍 ${bps.length}개 → 불안정한 매칭</p>`+bps.map(describeBP).join('')
+                    : `<p class="ok">✔ 블로킹 쌍이 없습니다 → 안정적인 매칭입니다.</p><p class="note">어떤 두 주체도 지금의 짝을 버리고 서로 짝을 지을 이유가 없습니다.</p>`;
+}
+function renderResult(){
+  $('#resultCard').style.display='';
+  $('#resultTable').innerHTML = matchTable(SIM.matchL);
+  $('#resultStable').innerHTML = stabilityHTML(SIM.matchL);
+  $('#compareOut').innerHTML = '';
+  $('#bCompare').textContent = `${josa(S.proposer==='L'?S.lblR:S.lblL,'이가')} 먼저 제안하면? 비교하기`;
+}
+$('#bCompare').onclick=()=>{
+  const other = runDA(S.proposer==='L'?'R':'L');
+  const same = other.matchL.every((j,i)=>j===SIM.matchL[i]);
+  const sa=satisfaction(SIM.matchL), sb=satisfaction(other.matchL);
+  const oName = S.proposer==='L'?S.lblR:S.lblL, mName = S.proposer==='L'?S.lblL:S.lblR;
+  $('#compareOut').innerHTML = `<h3>${esc(josa(oName,'이가'))} 먼저 제안한 결과</h3>` + matchTable(other.matchL, SIM.matchL) +
+    (same ? `<p class="note">결과가 같습니다. 이 데이터에서는 안정적인 매칭이 하나뿐일 수 있습니다(③ 탭에서 확인).</p>`
+          : `<p class="note">노란 칸이 달라진 곳입니다. 평균 선호순위(작을수록 만족)를 보면, 먼저 제안한 쪽이 더 유리합니다: ${esc(mName)} 제안 시 ${esc(S.lblL)} ${sa.avgL} / ${esc(S.lblR)} ${sa.avgR}, ${esc(oName)} 제안 시 ${esc(S.lblL)} ${sb.avgL} / ${esc(S.lblR)} ${sb.avgR}.</p>`);
+};
+function go(k){ if(!SIM) return; cur=Math.max(0,Math.min(SIM.steps.length-1,k)); renderSim(); }
+function stopPlay(){ if(timer){clearInterval(timer);timer=null;} $('#bPlay').textContent='▶ 자동 재생'; }
+$('#bFirst').onclick=()=>{stopPlay();go(0);};
+$('#bPrev').onclick=()=>{stopPlay();go(cur-1);};
+$('#bNext').onclick=()=>go(cur+1);
+$('#bLast').onclick=()=>{stopPlay();go(1e9);};
+$('#bPlay').onclick=()=>{
+  if(timer){stopPlay();return;}
+  if(!SIM) return;
+  if(cur===SIM.steps.length-1) go(0);
+  $('#bPlay').textContent='⏸ 멈춤';
+  timer=setInterval(()=>{ if(cur>=SIM.steps.length-1){stopPlay();return;} go(cur+1); }, +$('#speed').value);
+};
+$('#speed').oninput=()=>{ if(timer){ stopPlay(); $('#bPlay').click(); } };
+$$('#propSeg button').forEach(b=>b.onclick=()=>{ S.proposer=b.dataset.p; buildSim(); renderSim(); renderManualButtons(); });
+$('#bigText').onchange=e=>document.body.classList.toggle('big',e.target.checked);
+document.addEventListener('keydown',e=>{
+  if(!$('#tab-sim').classList.contains('on')) return;
+  if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key==='ArrowRight'){go(cur+1);e.preventDefault();}
+  if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault();}
+});
+
+/* ---------------- 직접 매칭 탭 ---------------- */
+let MAN = [], selL = -1;
+function renderManualButtons(){
+  $('#mLoadL').textContent = `${S.lblL} 제안 결과 불러오기`;
+  $('#mLoadR').textContent = `${S.lblR} 제안 결과 불러오기`;
+}
+function renderManual(){
+  renderManualButtons();
+  if(!validate().ok){ $('#manSvg').innerHTML=''; $('#manStatus').innerHTML=`<p class="warn">① 데이터 설정의 입력 오류를 먼저 고쳐 주세요.</p>`; $('#manBP').innerHTML=''; return; }
+  if(MAN.length!==S.namesL.length) MAN = Array(S.namesL.length).fill(-1);
+  MAN = MAN.map(j=>j>=S.namesR.length?-1:j);
+  const G = boardGeom(); S._m = MAN;
+  const bps = blockingPairs(MAN);
+  let svg = `<defs>${MARKERS}</defs>`;
+  svg += `<text x="${G.xL}" y="30" text-anchor="middle" font-weight="900" font-size="16" fill="#16324f">${esc(S.lblL)}</text><text x="${G.xR}" y="30" text-anchor="middle" font-weight="900" font-size="16" fill="#16324f">${esc(S.lblR)}</text>`;
+  bps.forEach(({i,j})=>{ svg+=edge(G.xL,G.yL(i),G.xR,G.yR(j),{color:'#e29a17',dash:'4 6',width:3}); });
+  MAN.forEach((j,i)=>{ if(j!==-1) svg+=edge(G.xL,G.yL(i),G.xR,G.yR(j),{color:'#1f9e8f',width:4}); });
+  S.namesL.forEach((n,i)=>{ svg+=nodeSVG(G.xL,G.yL(i),G.r,n,COLORS_L[i%8],'', 'L'+i, selL===i?'sel':''); if(selL===i) svg+=`<circle cx="${G.xL}" cy="${G.yL(i)}" r="${G.r+6}" fill="none" stroke="#2f6fde" stroke-width="3" stroke-dasharray="4 3"/>`; });
+  S.namesR.forEach((n,j)=>{ svg+=nodeSVG(G.xR,G.yR(j),G.r,n,COLORS_R[j%8],`${MAN.filter(x=>x===j).length}/${S.capR[j]}명`,'R'+j); });
+  const el=$('#manSvg'); el.setAttribute('viewBox',`0 0 ${G.W} ${G.H}`); el.innerHTML=svg;
+  const unm = MAN.filter(x=>x===-1).length;
+  $('#manStatus').innerHTML = matchTable(MAN) + (unm?`<p class="note">아직 연결되지 않은 ${esc(S.lblL)}: ${unm}명</p>`:'');
+  $('#manBP').innerHTML = bps.length ? `<p class="warn">블로킹 쌍 ${bps.length}개 → 불안정</p>`+bps.map(describeBP).join('')
+    : `<p class="ok">✔ 블로킹 쌍 없음 → 안정적인 매칭입니다!</p>`;
+}
+$('#manSvg').addEventListener('click',e=>{
+  const g = e.target.closest('.node'); if(!g) return;
+  const id=g.dataset.id, k=+id.slice(1);
+  if(id[0]==='L'){ selL = selL===k?-1:k; }
+  else if(selL!==-1){
+    if(MAN[selL]===k) MAN[selL]=-1;
+    else if(MAN.filter(x=>x===k).length < S.capR[k]) MAN[selL]=k;
+    else { flash(`${S.namesR[k]}의 정원(${S.capR[k]}명)이 이미 찼습니다. 먼저 기존 연결을 풀어 주세요.`); return; }
+    selL=-1;
+  } else {
+    // 오른쪽만 누른 경우: 해당 오른쪽과의 연결 모두 해제
+    MAN = MAN.map(j=>j===k?-1:j);
+  }
+  renderManual();
+});
+function flash(msg){ $('#manBP').insertAdjacentHTML('afterbegin',`<p class="warn" id="fl">⚠ ${esc(msg)}</p>`); setTimeout(()=>$('#fl')?.remove(),2500); }
+$('#mClear').onclick=()=>{MAN=Array(S.namesL.length).fill(-1);selL=-1;renderManual();};
+$('#mRandom').onclick=()=>{
+  const slots=[]; S.capR.forEach((c,j)=>{for(let s=0;s<c;s++)slots.push(j);}); shuffle(slots);
+  MAN = range(S.namesL.length).map(i=>slots[i]??-1); selL=-1; renderManual();
+};
+$('#mLoadL').onclick=()=>{ if(!validate().ok)return; MAN=runDA('L').matchL; renderManual(); };
+$('#mLoadR').onclick=()=>{ if(!validate().ok)return; MAN=runDA('R').matchL; renderManual(); };
+$('#mFindAll').onclick=()=>{
+  if(!validate().ok) return;
+  const nL=S.namesL.length, nR=S.namesR.length;
+  const total = Math.pow(nR+1,nL);
+  if(total>500000){ $('#allStable').innerHTML=`<p class="warn">경우의 수(${total.toLocaleString()})가 너무 많습니다. 주체 수를 줄여 주세요.</p>`; return; }
+  const res=[], m=Array(nL).fill(-1), cnt=Array(nR).fill(0);
+  (function rec(i){
+    if(i===nL){ S._m=m; if(!blockingPairs(m).length) res.push([...m]); return; }
+    for(let j=-1;j<nR;j++){ if(j>=0 && cnt[j]>=S.capR[j]) continue; m[i]=j; if(j>=0)cnt[j]++; rec(i+1); if(j>=0)cnt[j]--; }
+    m[i]=-1;
+  })(0);
+  const a=runDA('L').matchL.join(), b=runDA('R').matchL.join();
+  $('#allStable').innerHTML = `<p>전체 ${total.toLocaleString()}가지 배정 중 <b>안정적인 매칭은 ${res.length}개</b>입니다.</p><div class="stable-list">` +
+    res.map((r,k)=>{ const tags=[]; if(r.join()===a) tags.push(`<span class="pill blue">${esc(S.lblL)} 제안 결과</span>`); if(r.join()===b) tags.push(`<span class="pill green">${esc(S.lblR)} 제안 결과</span>`);
+      const sa=satisfaction(r);
+      return `<button data-k="${k}">${k+1}. ${r.map((j,i)=>`${esc(S.namesL[i])}–${j===-1?'×':esc(S.namesR[j])}`).join(', ')} &nbsp; <span class="note">평균순위 ${esc(S.lblL)} ${sa.avgL} / ${esc(S.lblR)} ${sa.avgR}</span> ${tags.join(' ')}</button>`; }).join('') + `</div>` +
+    (res.length>1?`<p class="note">안정적인 매칭이 여러 개일 때, 먼저 제안하는 쪽은 그중 자신에게 가장 유리한 결과를 얻습니다.</p>`:'');
+  $$('#allStable .stable-list button').forEach(btn=>btn.onclick=()=>{ MAN=[...res[+btn.dataset.k]]; renderManual(); window.scrollTo({top:0,behavior:'smooth'}); });
+};
+
+/* ---------------- 점수 탭 ---------------- */
+let metric='dist';
+function resetScores(){
+  if(!S.feat.length) S.feat=['적극성','사교성','배려심'];
+  const nF=S.feat.length;
+  S.scL = range(S.namesL.length).map(i=>range(nF).map(f=>S.scL[i]?.[f]??''));
+  S.scR = range(S.namesR.length).map(j=>range(nF).map(f=>S.scR[j]?.[f]??''));
+}
+function renderScore(){
+  $('#nF').value=S.feat.length;
+  $('#hScL').textContent=`${S.lblL}의 성향 점수`; $('#hScR').textContent=`${S.lblR}의 성향 점수`;
+  const tbl=(names,sc,side)=>`<table class="t"><tr><th></th>${S.feat.map((f,k)=>`<th><input class="nm" data-fk="${k}" value="${esc(f)}" style="width:64px"></th>`).join('')}</tr>`+
+    names.map((n,i)=>`<tr><th class="rh">${esc(n)}</th>${S.feat.map((_,f)=>`<td><input type="number" data-sc="${side}" data-i="${i}" data-f="${f}" value="${sc[i][f]}"></td>`).join('')}</tr>`).join('')+`</table>`;
+  $('#scLWrap').innerHTML=tbl(S.namesL,S.scL,'L'); $('#scRWrap').innerHTML=tbl(S.namesR,S.scR,'R');
+}
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.sc){ const arr=t.dataset.sc==='L'?S.scL:S.scR; arr[+t.dataset.i][+t.dataset.f]= t.value===''?'':parseFloat(t.value); }
+  if(t.dataset.fk!==undefined) S.feat[+t.dataset.fk]=t.value;
+});
+$('#applyF').onclick=()=>{ const n=Math.max(1,Math.min(8,parseInt($('#nF').value)||1)); S.feat=range(n).map(k=>S.feat[k]||`요소${k+1}`); resetScores(); renderScore(); $('#scoreOut').innerHTML=''; };
+$('#scorePreset').innerHTML = SCORE_PRESETS.map((p,k)=>`<option value="${k}">${esc(p.name)}</option>`).join('');
+$('#scoreLoad').onclick=()=>{
+  const p=SCORE_PRESETS[+$('#scorePreset').value];
+  S.lblL='개인'; S.lblR='동호회'; S.namesL=[...p.L]; S.namesR=[...p.R]; S.capR=p.R.map(()=>1);
+  S.rankL=range(p.L.length).map(()=>range(p.R.length).map(j=>j+1)); S.rankR=range(p.R.length).map(()=>range(p.L.length).map(i=>i+1));
+  S.feat=[...p.feat]; S.scL=p.scL.map(r=>[...r]); S.scR=p.scR.map(r=>[...r]);
+  refreshAll(); $('#scoreOut').innerHTML=`<p class="note">점수를 불러왔습니다. 기준을 고른 뒤 「계산하기」를 누르세요. (주체 수와 이름이 이 예시에 맞게 바뀌었습니다.)</p>`;
+};
+$$('#metricSeg button').forEach(b=>b.onclick=()=>{ metric=b.dataset.m; $$('#metricSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
+function ranksFrom(vals, better){ // vals: 배열, better: 'low'|'high' → 순위배열, 동점여부
+  const idx = range(vals.length).sort((a,b)=> better==='low' ? vals[a]-vals[b] || a-b : vals[b]-vals[a] || a-b);
+  const r=Array(vals.length); idx.forEach((k,p)=>r[k]=p+1);
+  const rounded = vals.map(v=>Math.round(v*100)/100);
+  const tie = new Set(rounded).size < rounded.length;
+  return {r, tie};
+}
+$('#scoreCalc').onclick=()=>{
+  const nL=S.namesL.length, nR=S.namesR.length;
+  const bad = [...S.scL,...S.scR].some(r=>r.some(v=>v===''||isNaN(v)));
+  if(bad){ $('#scoreOut').innerHTML=`<p class="warn">⚠ 빈 칸 없이 점수를 모두 입력해 주세요.</p>`; return; }
+  const dist=(a,b)=>Math.sqrt(a.reduce((s,x,k)=>s+(x-b[k])**2,0));
+  const norm=a=>Math.sqrt(a.reduce((s,x)=>s+x*x,0));
+  const cos=(a,b)=>{ const d=norm(a)*norm(b); return d? a.reduce((s,x,k)=>s+x*b[k],0)/d : 0; };
+  const f = metric==='dist'?dist:cos, better = metric==='dist'?'low':'high';
+  const M = range(nL).map(i=>range(nR).map(j=>f(S.scL[i],S.scR[j])));
+  const rl = range(nL).map(i=>ranksFrom(M[i],better));
+  const rr = range(nR).map(j=>ranksFrom(range(nL).map(i=>M[i][j]),better));
+  const anyTie = rl.some(x=>x.tie)||rr.some(x=>x.tie);
+  const title = metric==='dist'?'두 점 사이의 거리 (작을수록 선호)':'코사인 유사도 (클수록 선호)';
+  let h = `<h3>${title}</h3><p class="note">${metric==='dist'?'거리 = √(각 성향 요소 점수 차의 제곱의 합)':'cos θ = (두 벡터의 내적) ÷ (두 벡터의 크기의 곱)'} · 소수점 아래 셋째 자리에서 반올림</p>`;
+  h += `<table class="t"><tr><th></th>${S.namesR.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>` + range(nL).map(i=>`<tr><th class="rh">${esc(S.namesL[i])}</th>${range(nR).map(j=>`<td>${M[i][j].toFixed(2)}</td>`).join('')}</tr>`).join('') + `</table>`;
+  h += `<div class="row"><div class="col"><h3>${esc(S.lblL)}의 선호순위</h3><table class="t"><tr><th></th>${S.namesR.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>`+range(nL).map(i=>`<tr class="${rl[i].tie?'bad':''}"><th class="rh">${esc(S.namesL[i])}</th>${rl[i].r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')+`</table></div>`;
+  h += `<div class="col"><h3>${esc(S.lblR)}의 선호순위</h3><table class="t"><tr><th></th>${S.namesL.map(n=>`<th>${esc(n)}</th>`).join('')}</tr>`+range(nR).map(j=>`<tr class="${rr[j].tie?'bad':''}"><th class="rh">${esc(S.namesR[j])}</th>${rr[j].r.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')+`</table></div></div>`;
+  if(anyTie) h += `<p class="warn">⚠ 빨간 행에는 값이 같은 경우(동점)가 있습니다. 이때는 표의 순서대로 순위를 매겼습니다. 동점을 어떻게 처리할지 학생들과 기준을 정해 보세요(교재 문제 8 참고).</p>`;
+  h += `<button class="btn pri" id="applyRanks">이 선호순위를 시뮬레이터에 적용하기</button>`;
+  $('#scoreOut').innerHTML = h;
+  $('#applyRanks').onclick=()=>{ S.rankL=rl.map(x=>x.r); S.rankR=rr.map(x=>x.r); refreshAll(); showTab('sim'); };
+};
+
+/* ---------------- 탭/공통 ---------------- */
+function showTab(t){
+  $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $$('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
+  if(t!=='sim') stopPlay();
+  if(t==='manual') renderManual();
+}
+$$('#nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function refreshAll(){ renderSetup(); buildSim(); renderSim(); renderManual(); renderScore(); }
+
+loadPreset(PRESETS[0]);
+</script>
+</body>
+</html>
